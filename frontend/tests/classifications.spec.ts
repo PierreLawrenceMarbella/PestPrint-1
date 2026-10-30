@@ -10,18 +10,18 @@ const currentClasses = [
 ];
 const labels = [
   "Healthy Rice",
-  "Brown Planthopper Damage",
   "Stem Borer Damage",
   "Rice Leaffolder Damage",
   "Unknown (Other Damage)",
 ];
 
-test("five category cards accurately describe the current model and link to the guide", async ({
+test("four category cards accurately describe the current model and link to the guide", async ({
   page,
 }) => {
   await page.goto("/analyze");
   const section = page.getByRole("region", { name: "Supported Classes" });
-  await expect(section.getByRole("link")).toHaveCount(5);
+  await expect(section.getByRole("link")).toHaveCount(4);
+  await expect(section.locator("h3")).toHaveText(labels);
   for (const name of labels)
     await expect(
       section.getByRole("heading", { name, exact: true }),
@@ -29,9 +29,7 @@ test("five category cards accurately describe the current model and link to the 
   await expect(
     section.getByText("Model supported", { exact: true }),
   ).toHaveCount(4);
-  await expect(
-    section.getByRole("link", { name: /Brown Planthopper Damage/ }),
-  ).toContainText("Guide only");
+  await expect(section.getByText("Guide only", { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: "Tips for Better Results" }),
   ).toBeVisible();
@@ -48,7 +46,22 @@ test("five category cards accurately describe the current model and link to the 
     page.getByRole("heading", { name: "Unknown (Other Damage)", exact: true }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Back to Pest Guide" }).click();
-  await expect(page.getByRole("link", { name: "View Details" })).toHaveCount(5);
+  await expect(page.getByRole("link", { name: "View Details" })).toHaveCount(4);
+  await expect(page.locator(".guide-card h2")).toHaveText([
+    "Stem Borer", "Rice Leaffolder", "Healthy Rice", "Unknown (Other Damage)",
+  ]);
+});
+
+test("removed pest has no advertised content or accessible detail page", async ({ page }) => {
+  for (const route of ["/", "/analyze", "/pest-guide", "/about", "/pest-guide/brown-planthopper"]) {
+    await page.goto(route);
+    await expect(page.locator("main")).not.toContainText(/Brown Planthopper|Nilaparvata|\bBPH\b/i);
+    await expect(page.locator('a[href*="brown-planthopper"], img[src*="brown-planthopper"]')).toHaveCount(0);
+  }
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("This page hasn’t taken root.");
+  await expect(page.locator(".detail-panel")).toHaveCount(0);
+  await page.getByRole("link", { name: "Back to Home" }).click();
+  await expect(page).toHaveURL(/\/$/);
 });
 
 test("actual model Unknown result uses four genuine probabilities and resets cleanly", async ({
@@ -101,8 +114,8 @@ test("actual model Unknown result uses four genuine probabilities and resets cle
   ).toBeVisible();
 });
 
-// Future five-output model contract, deliberately mocked only in this test.
-test("five-class API fixture renders Brown Planthopper without changing current model weights", async ({
+// Incompatible model fixture: never advertise, relabel or renormalize its outputs.
+test("a model advertising an unsupported category is rejected before inference", async ({
   page,
 }) => {
   const classes = [...currentClasses, "brown_planthopper"];
@@ -115,38 +128,45 @@ test("five-class API fixture renders Brown Planthopper without changing current 
       },
     }),
   );
-  await page.route("**/api/analyze", (route) =>
-    route.fulfill({
-      json: {
-        prediction: "brown_planthopper",
-        confidence: 0.8,
-        probabilities: Object.fromEntries(
-          classes.map((id) => [id, id === "brown_planthopper" ? 0.8 : 0.05]),
-        ),
-        model: "Five-class development fixture",
-        unknown_method: "trained_class",
-      },
-    }),
-  );
+  let inferenceRequests = 0;
+  await page.route("**/api/analyze", (route) => {
+    inferenceRequests++;
+    return route.abort();
+  });
   await page.goto("/analyze");
-  await expect(page.getByText("Model supported", { exact: true })).toHaveCount(
-    5,
-  );
+  await expect(page.getByRole("status")).toContainText("categories do not match this website");
+  await expect(page.getByText("Model supported", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Supported Classes" }).getByRole("link")).toHaveCount(4);
   await page.getByLabel("Choose crop image").setInputFiles(image);
   await page
     .getByRole("button", { name: "Analyze Image", exact: true })
     .click();
-  await expect(
-    page.getByRole("heading", {
-      name: "Brown Planthopper Damage",
-      exact: true,
-    }),
-  ).toBeVisible();
-  await expect(page.getByRole("progressbar")).toHaveCount(5);
-  await page
-    .getByRole("link", { name: /Learn More About Brown Planthopper/ })
-    .click();
-  await expect(page).toHaveURL(/\/pest-guide\/brown-planthopper$/);
+  await expect(page.getByRole("alert")).toContainText("categories do not match this website");
+  await expect(page.getByRole("progressbar")).toHaveCount(0);
+  await expect(page.locator(".results-panel")).toHaveCount(0);
+  expect(inferenceRequests).toBe(0);
+});
+
+test("unsupported predictions are not converted into a supported result", async ({ page }) => {
+  await page.route("**/api/analyze", (route) => route.fulfill({
+    json: {
+      prediction: "brown_planthopper",
+      confidence: 0.8,
+      probabilities: {
+        healthy_rice: 0.05, rice_leaffolder: 0.05, rice_stem_borer: 0.05,
+        unknown: 0.05, brown_planthopper: 0.8,
+      },
+      model: "Unsupported prediction fixture",
+      unknown_method: "trained_class",
+    },
+  }));
+  await page.goto("/analyze");
+  await page.getByLabel("Choose crop image").setInputFiles(image);
+  await page.getByRole("button", { name: "Analyze Image", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("unsupported response");
+  await expect(page.locator(".results-panel")).toHaveCount(0);
+  await expect(page.getByRole("progressbar")).toHaveCount(0);
+  await expect(page.locator("main")).not.toContainText("Brown Planthopper");
 });
 
 test("a low-confidence known class is not reassigned to Unknown", async ({
@@ -174,7 +194,7 @@ test("a low-confidence known class is not reassigned to Unknown", async ({
     .getByRole("button", { name: "Analyze Image", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Rice Leaffolder Damage", exact: true }),
+    page.getByRole("heading", { name: "Rice Leaffolder", exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Confidence Score: 28.0%")).toBeVisible();
   await expect(page.locator(".results-panel")).toHaveClass(/pest/);
@@ -248,6 +268,19 @@ test("updated upload and Unknown screens fit phone, tablet and desktop", async (
       ).toBe(true);
     }
     await page.goto("/analyze");
+    await expect(page.locator(".classification-card")).toHaveCount(4);
+    const cards = await page.locator(".classification-card").evaluateAll((elements) => elements.map((el) => {
+      const { x, y, width } = el.getBoundingClientRect();
+      return { x, y, width };
+    }));
+    if (width >= 768) {
+      expect(new Set(cards.map((card) => card.y)).size).toBe(1);
+      expect(Math.max(...cards.map((card) => card.width)) - Math.min(...cards.map((card) => card.width))).toBeLessThan(1);
+    } else {
+      expect(cards[0].y).toBe(cards[1].y);
+      expect(cards[2].y).toBe(cards[3].y);
+      expect(cards[2].y).toBeGreaterThan(cards[0].y);
+    }
     await page.screenshot({
       path: `../.artifacts/unknown-upload-${width}.png`,
       fullPage: true,

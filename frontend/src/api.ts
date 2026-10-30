@@ -26,10 +26,13 @@ export async function getModelStatus(
     typeof data.message !== "string" ||
     !Array.isArray(data.classes) ||
     data.classes.length === 0 ||
-    !data.classes.every(isClassId) ||
     new Set(data.classes).size !== data.classes.length
   )
     throw new Error("The analysis service returned an invalid status.");
+  if (!data.classes.every(isClassId))
+    throw new Error(
+      "The connected model's categories do not match this website. Please check the model configuration.",
+    );
   return data;
 }
 export async function analyzeImage(

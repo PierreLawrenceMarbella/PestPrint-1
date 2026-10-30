@@ -2,19 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
-  Upload,
   CloudUpload,
   Camera,
   Image as ImageIcon,
-  Lightbulb,
   Info,
   X,
   RefreshCw,
   LoaderCircle,
   Check,
   ScanLine,
-  ShieldCheck,
-  CircleHelp,
+  Leaf,
+  Bug,
   AlertCircle,
 } from "lucide-react";
 import {
@@ -206,145 +204,60 @@ export function AnalysisResult({
     heading.current?.focus();
     window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
-  const description = unknown
-    ? "The model assigned this image to Unknown (Other Damage), rather than the defined healthy or known-pest categories. The damage may be associated with other pests, diseases, environmental conditions, or non-insect factors. This is not a diagnosis of its cause."
-    : healthy
-      ? "The image best matches the healthy rice category, with no significant pest-related damage recognized by this model."
-      : `The model detected damage patterns most consistent with ${classNames[result.prediction]}. ${guide?.summary ?? ""}`;
+  const characteristics = unknown ? unknownGuidance : healthy ? [
+    "No visible signs of pest-related damage",
+    "Leaves, stems, and grains appear normal",
+    "Healthy and good condition",
+  ] : guide?.symptoms ?? [];
   return (
     <div className="page-wrap results-page">
-      <div className="result-heading">
-        <div>
-          <p className="eyebrow">YOUR CROP, A CLOSER LOOK</p>
-          <h1 ref={heading} tabIndex={-1}>
-            Your Analysis Results
-          </h1>
-        </div>
-        <span className="complete-badge">
-          <Check size={15} /> Analysis complete
-        </span>
-      </div>
+      <h1 ref={heading} tabIndex={-1} className="sr-only">Your Analysis Results</h1>
       <section className={`results-panel panel ${tone}`}>
         <div className="result-grid">
           <figure className="result-image">
-            <img
-              src={preview}
-              alt="Uploaded rice crop used for this analysis"
-            />
-            <figcaption>
-              <ImageIcon size={15} />
-              <span>{filename}</span>
-            </figcaption>
+            <img src={preview} alt="Uploaded rice crop used for this analysis" />
+            <figcaption className="sr-only">{filename}</figcaption>
           </figure>
           <div className="result-data">
             <div className="prediction-summary">
-              <span className="prediction-icon">
-                {unknown ? (
-                  <CircleHelp size={29} />
-                ) : healthy ? (
-                  <ShieldCheck size={29} />
-                ) : (
-                  <ScanLine size={29} />
-                )}
-              </span>
-              <div>
-                <p className="prediction-label">
-                  {unknown || healthy ? "Predicted Class" : "Predicted Pest"}
-                </p>
-                <h2>{classNames[result.prediction]}</h2>
-                <p className="confidence">
-                  Confidence Score:{" "}
-                  <strong>{(result.confidence * 100).toFixed(1)}%</strong>
-                </p>
-                {unknown && (
-                  <div className="unknown-confidence-track" aria-hidden="true">
-                    <span style={{ width: `${result.confidence * 100}%` }} />
-                  </div>
-                )}
+              <div className="prediction-title">
+                <span className="prediction-icon">
+                  {unknown ? <span aria-hidden="true">?</span> : healthy ? <Leaf size={34} /> : <Bug size={34} />}
+                </span>
+                <div>
+                  <p className="prediction-label">{unknown || healthy ? "Predicted Class" : "Predicted Pest"}</p>
+                  <h2>{unknown ? <>Unknown <br />(Other Damage)</> : guide?.name ?? classNames[result.prediction]}</h2>
+                  {!unknown && !healthy && <p className="scientific">({guide?.scientific})</p>}
+                </div>
               </div>
+              <p className="confidence"><span>Confidence Score: </span><strong>{(result.confidence * 100).toFixed(1)}%</strong></p>
+              <div className="confidence-track" aria-hidden="true"><span style={{ width: `${result.confidence * 100}%` }} /></div>
             </div>
-            <p className="result-description">{description}</p>
-            <h3>Prediction Probabilities</h3>
-            <div className="probabilities">
-              {(Object.entries(result.probabilities) as [ClassId, number][])
-                .sort((a, b) => b[1] - a[1])
-                .map(([id, value]) => (
-                  <PredictionBar
-                    key={id}
-                    id={id}
-                    value={value}
-                    leading={id === result.prediction}
-                    tone={tone}
-                  />
-                ))}
-            </div>
-            <p className="probability-note">
-              Model confidence is not a guarantee of correctness.
-            </p>
-          </div>
-        </div>
-        <div className="characteristics">
-          <span className="round-icon">
-            {unknown ? <CircleHelp size={21} /> : <Check size={21} />}
-          </span>
-          <div>
-            <h3>
-              {unknown
-                ? "Possible Damage Characteristics"
+            <div className="characteristics">
+              <h3>{healthy || unknown ? "Identified Characteristics" : "Identified Damage Characteristics"}</h3>
+              <ul>{characteristics.map((item) => <li key={item}>{item}</li>)}</ul>
+              <p className="characteristic-note">{unknown
+                ? "General explanatory guidance, not independently detected findings in your image."
                 : healthy
-                  ? "Analysis Result"
-                  : "Typical Damage Characteristics"}
-            </h3>
-            {unknown ? (
-              <>
-                <ul>
-                  {unknownGuidance.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-                <p className="small">
-                  General explanatory guidance, not independently detected
-                  findings in your image.
-                </p>
-              </>
-            ) : healthy ? (
-              <p>
-                No significant pest-related damage detected by the model in this
-                image. This does not confirm that the plant is completely
-                pest-free or disease-free.
-              </p>
-            ) : (
-              <>
-                <ul>
-                  {guide?.symptoms.map((s) => (
-                    <li key={s}>{s}</li>
-                  ))}
-                </ul>
-                <p className="small">
-                  Typical signs of this class; not separately verified findings
-                  in your image.
-                </p>
-              </>
-            )}
+                  ? "Class characteristics only. This does not confirm that the plant is completely pest-free or disease-free."
+                  : "Typical signs of this class; not separately verified findings in your image."}</p>
+            </div>
           </div>
         </div>
+        <section className="probability-section" aria-labelledby="probabilities-title">
+          <h3 id="probabilities-title">Prediction Probabilities</h3>
+          <div className="probabilities">
+            {(Object.entries(result.probabilities) as [ClassId, number][])
+              .sort((a, b) => b[1] - a[1])
+              .map(([id, value]) => <PredictionBar key={id} id={id} value={value} leading={id === result.prediction} tone={tone} />)}
+          </div>
+        </section>
         <div className="result-actions">
-          <button className="button secondary" onClick={onReset}>
-            <RefreshCw size={18} /> Analyze Another Image
-          </button>
-          {guide && (
-            <Link className="button" to={`/pest-guide/${guide.slug}`}>
-              <Info size={18} />{" "}
-              {unknown ? "Learn More" : `Learn More About ${guide.name}`}{" "}
-              <ArrowRight size={17} />
-            </Link>
-          )}
+          <button className="button secondary" onClick={onReset}><RefreshCw size={18} /> Analyze Another Image</button>
+          {guide && <Link className="button" to={`/pest-guide/${guide.slug}`}><Info size={18} /> {unknown ? "Learn More" : `Learn More About ${guide.name}`}</Link>}
         </div>
       </section>
-      <p className="result-disclaimer">
-        <Info size={16} /> Use this result as decision support. Consult an
-        agricultural expert if you are uncertain.
-      </p>
+      <p className="result-disclaimer">Model confidence is not a guarantee of correctness. Consult an agricultural expert if you are uncertain.</p>
     </div>
   );
 }
@@ -512,25 +425,11 @@ export function Analyze() {
   return (
     <div className="page-wrap analyze-page">
       <PageHeading
-        eyebrow="LET’S TAKE A CLOSER LOOK"
         title="Upload or Capture a Rice Crop Image"
       >
-        Upload a clear image of a rice plant (leaves, stem, or grains) with
+        Upload a clear image of the rice plant (leaves, stem, or grains) with
         visible damage for pest identification.
       </PageHeading>
-      <div className="upload-steps" aria-label="Analysis steps">
-        <span className="current">
-          <b>1</b> {file ? "Image selected" : "Upload image"}
-        </span>
-        <i />
-        <span className={busy ? "current" : ""}>
-          <b>2</b> Analyze crop
-        </span>
-        <i />
-        <span>
-          <b>3</b> View results
-        </span>
-      </div>
       <section className="upload-panel panel" aria-busy={busy}>
         {(status?.available === false || statusError) && (
           <div className="notice model-notice" role="status">
@@ -612,7 +511,7 @@ export function Analyze() {
                         ? "Checking your image…"
                         : "Drag and drop an image here"}
                   </h2>
-                  <p>or browse from your device</p>
+                  <p>or</p>
                   <button
                     className="button"
                     disabled={locked}
@@ -620,39 +519,10 @@ export function Analyze() {
                   >
                     <ImageIcon size={19} /> Choose Image
                   </button>
-                  <p className="format-note">
-                    JPG, JPEG, or PNG <span>·</span> Up to 10 MB
-                  </p>
-                </div>
-                <div className="or-divider">
-                  <span />
-                  or
-                  <span />
-                </div>
-                <div className="upload-options">
-                  <button disabled={locked} onClick={openCamera}>
-                    <span className="option-icon">
-                      <Camera size={28} />
-                    </span>
-                    <span>
-                      <strong>Take a Photo</strong>
-                      <small>Use your device camera</small>
-                    </span>
-                    <ArrowRight size={18} />
+                  <button className="button capture-button" disabled={locked} onClick={openCamera}>
+                    <Camera size={19} /> Capture Image
                   </button>
-                  <button
-                    disabled={locked}
-                    onClick={() => input.current?.click()}
-                  >
-                    <span className="option-icon">
-                      <ImageIcon size={27} />
-                    </span>
-                    <span>
-                      <strong>Choose from Gallery</strong>
-                      <small>Select an existing image</small>
-                    </span>
-                    <ArrowRight size={18} />
-                  </button>
+                  <p className="format-note">Supported formats: JPG, PNG (Max 10MB)</p>
                 </div>
               </>
             ) : (
@@ -723,26 +593,8 @@ export function Analyze() {
           </div>
           <TipsForBetterResults />
         </div>
-        <div className="upload-tip">
-          <Lightbulb size={21} />
-          <p>
-            For best results, include clear parts of the leaves, stem, or grains
-            with visible damage.
-          </p>
-        </div>
         <SupportedClasses status={status} statusError={!!statusError} />
       </section>
-      <div className="upload-assurances">
-        <span>
-          <FocusIcon /> Clear, close-up photos
-        </span>
-        <span>
-          <ShieldCheck size={16} /> Images are not saved
-        </span>
-        <span>
-          <Info size={16} /> Results for decision support
-        </span>
-      </div>
       {camera && (
         <CameraCapture
           onCapture={(f) => void chooseFile(f)}
@@ -751,7 +603,4 @@ export function Analyze() {
       )}
     </div>
   );
-}
-function FocusIcon() {
-  return <ScanLine size={16} />;
 }

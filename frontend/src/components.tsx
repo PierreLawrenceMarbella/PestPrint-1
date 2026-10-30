@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
-  ArrowRight,
-  Leaf,
   Menu,
   X,
   Camera,
   BrainCircuit,
   ClipboardCheck,
   ChevronRight,
-  CircleHelp,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { asset, type GuideEntry } from "./data";
@@ -75,7 +73,7 @@ export function Navbar() {
           <NavLink to="/about">About</NavLink>
           {location.pathname === "/" && (
             <Link className="button nav-cta" to="/analyze">
-              Get Started <ArrowRight size={17} />
+              Get Started
             </Link>
           )}
         </nav>
@@ -83,42 +81,18 @@ export function Navbar() {
     </header>
   );
 }
-export function Footer() {
-  return (
-    <footer className="footer">
-      <div className="footer-inner">
-        <div>
-          <Logo />
-          <p>A clearer picture. A healthier harvest.</p>
-        </div>
-        <div className="footer-right">
-          <span>Rice crop damage identification</span>
-          <Link to="/about">
-            About PESTPRINT <ArrowRight size={14} />
-          </Link>
-        </div>
-      </div>
-      <div className="footer-bottom">
-        <span>Built to support better crop understanding.</span>
-        <span>
-          <Leaf size={14} /> Rooted in agriculture. Powered by AI.
-        </span>
-      </div>
-    </footer>
-  );
-}
 export function PageHeading({
   eyebrow,
   title,
   children,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="page-heading">
-      <p className="eyebrow">{eyebrow}</p>
+      {eyebrow && <p className="eyebrow">{eyebrow}</p>}
       <h1>{title}</h1>
       <p>{children}</p>
     </div>
@@ -152,11 +126,14 @@ export function HowItWorks() {
       <FeatureCard number="01" icon={Camera} title="Upload or Capture">
         Take a photo or upload an image of your rice crop.
       </FeatureCard>
-      <FeatureCard number="02" icon={BrainCircuit} title="Image-Based Analysis">
+      <FeatureCard number="02" icon={BrainCircuit} title="AI Analysis">
         Our model analyzes crop damage patterns using deep learning.
       </FeatureCard>
       <FeatureCard number="03" icon={ClipboardCheck} title="Get Results">
         Receive the most likely pest, confidence score, and damage details.
+      </FeatureCard>
+      <FeatureCard number="04" icon={Users} title="For Farmers & Agriculture">
+        Helps rice farmers, LGUs, and extension workers in identifying rice pests.
       </FeatureCard>
     </div>
   );
@@ -172,32 +149,14 @@ export function PestGuideCard({
     <article className={compact ? "guide-card compact" : "guide-card"}>
       <img src={asset(entry.image)} alt={entry.alt} loading="lazy" />
       <div className="guide-card-content">
-        <span className="category">{entry.category}</span>
         <h2>
-          {entry.slug === "unknown-damage" && (
-            <CircleHelp
-              className="unknown-guide-icon"
-              size={23}
-              aria-hidden="true"
-            />
-          )}
           {entry.name}
-          {entry.slug === "brown-planthopper" && (
-            <span className="bph"> (BPH)</span>
-          )}
         </h2>
         <p>{entry.summary}</p>
-        {!compact && (
-          <div className="symptom-chips">
-            {entry.symptoms.slice(0, 2).map((s) => (
-              <span key={s}>{s}</span>
-            ))}
-          </div>
-        )}
+      </div>
         <Link to={`/pest-guide/${entry.slug}`} className="detail-link">
           View Details <ChevronRight size={16} />
         </Link>
-      </div>
     </article>
   );
 }

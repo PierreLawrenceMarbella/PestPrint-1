@@ -1,131 +1,90 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowRight,
   ArrowLeft,
   Upload,
-  ScanLine,
   Leaf,
   Check,
   ShieldCheck,
   Sprout,
   Info,
   ExternalLink,
-  Focus,
   BrainCircuit,
   CircleHelp,
 } from "lucide-react";
 import { asset, guides } from "./data";
 import { HowItWorks, PageHeading, PestGuideCard } from "./components";
 
+// Decorative hero assets are illustrative; analysis always uses the uploaded photo.
+const heroSlides = [
+  "hero-rice-mountains.webp",
+  "hero-rice-morning.webp",
+  "rice-field.jpg",
+  "hero-rice-sunset.webp",
+];
+
 export function Home() {
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let timer: number | undefined;
+    const sync = () => {
+      window.clearInterval(timer);
+      if (motion.matches) setActive(0);
+      if (!motion.matches && !paused && !document.hidden)
+        timer = window.setInterval(() => setActive((slide) => (slide + 1) % heroSlides.length), 5000);
+    };
+    sync();
+    motion.addEventListener("change", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      window.clearInterval(timer);
+      motion.removeEventListener("change", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [paused]);
   return (
-    <>
+    <div className={`home-page ${paused ? "motion-paused" : ""}`}>
       <section className="hero">
-        <img
-          className="hero-image"
-          src={asset("rice-field.jpg")}
-          alt="Sunlit rice panicles growing in a green paddy field"
-          fetchPriority="high"
-        />
+        <div className="hero-slides" aria-hidden="true">
+          {heroSlides.map((photo, index) => (
+            <img key={photo} className={`hero-image ${index === active ? "active" : ""}`}
+              src={asset(photo)} alt="" fetchPriority={index === 0 ? "high" : "low"} />
+          ))}
+        </div>
         <div className="hero-overlay" />
         <div className="hero-inner">
           <div className="hero-copy">
-            <p className="eyebrow">
-              <span /> AI-POWERED RICE PEST IDENTIFICATION
-            </p>
-            <h1>
-              Identify Rice Pests
-              <br />
-              Through{" "}
-              <span>
-                Crop
-                <br className="desktop-break" /> Damage
-              </span>{" "}
-              Images
-            </h1>
+            <h1>Identify Rice Pests<br />Through <span>Crop<br />Damage Images</span></h1>
             <p className="hero-description">
-              An image-based crop damage analysis system that uses deep learning
-              to identify the most likely pest responsible for visible damage on
-              rice crops, even when the pest itself is not visible.
+              An AI-powered tool that analyzes visible damage on rice crops and identifies the most likely pest responsible, even when the pest itself is not visible.
             </p>
             <Link to="/analyze" className="button hero-button">
-              <Upload size={20} /> Analyze a Rice Crop Image{" "}
-              <ArrowRight size={20} />
+              Analyze a Rice Crop Image <ArrowRight size={19} />
             </Link>
-            <p className="hero-footnote">
-              <Check size={15} /> Image-based insights <span>·</span> No visible
-              pest needed
-            </p>
           </div>
           <div className="scan-visual" aria-hidden="true">
-            <div className="scan-label">
-              <span className="status-dot" /> A closer look at your crop
-            </div>
-            <div className="scan-frame">
-              <i />
-              <i />
-              <i />
-              <i />
-              <div className="scan-line" />
-              <ScanLine className="scan-center" size={32} />
-            </div>
-            <div className="scan-detail">
-              <img src={asset("rice-leaffolder.jpg")} alt="" />
-              <span>
-                <Focus size={14} /> Crop damage detail
-              </span>
-            </div>
-            <span className="scan-caption">Illustrative crop inspection</span>
-          </div>
-        </div>
-      </section>
-      <section className="how-section" aria-label="How PESTPRINT works">
-        <div className="section-kicker">
-          <span /> FROM CROP PHOTO TO CLEARER INSIGHT <span />
-        </div>
-        <HowItWorks />
-      </section>
-      <section className="home-guide section-container">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">KNOW YOUR CROP</p>
-            <h2>Small signs. Valuable insights.</h2>
-            <p>
-              Get familiar with common rice pests and the damage they leave
-              behind.
-            </p>
-          </div>
-          <Link to="/pest-guide" className="text-link">
-            Explore the Pest Guide <ArrowRight size={18} />
-          </Link>
-        </div>
-        <div className="home-guide-grid">
-          {guides
-            .filter((entry) => entry.slug !== "unknown-damage")
-            .map((entry) => (
-              <PestGuideCard key={entry.slug} entry={entry} compact />
+            <div className="scan-frame"><i /><i /><i /><i /><div className="scan-line" /></div>
+            {[0, 1, 2].map((detail) => (
+              <div key={detail} className={`crop-preview crop-preview-${detail + 1}`}>
+                <img src={asset("hero-rice-mountains.webp")} alt="" />
+              </div>
             ))}
+          </div>
         </div>
+        <button className="hero-motion-control" aria-label={paused ? "Play background animation" : "Pause background animation"}
+          aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? "Play" : "Pause"}</button>
       </section>
-      <section className="home-note section-container">
-        <ShieldCheck size={24} />
-        <p>
-          <strong>A helpful first step for your crop.</strong> PESTPRINT
-          provides image-based decision support. For uncertain results, consult
-          an agricultural expert.
-        </p>
-        <Link to="/about">
-          How it works <ArrowRight size={16} />
-        </Link>
-      </section>
-    </>
+      <section className="how-section" aria-label="How PESTPRINT works"><HowItWorks /></section>
+    </div>
   );
 }
 export function PestGuide() {
   return (
     <div className="page-wrap guide-page">
       <PageHeading
-        eyebrow="THE PESTPRINT FIELD GUIDE"
         title="Common Rice Pests and Their Damage"
       >
         Learn about the common pests that affect rice crops and the typical
@@ -135,14 +94,6 @@ export function PestGuide() {
         {guides.map((entry) => (
           <PestGuideCard key={entry.slug} entry={entry} />
         ))}
-      </div>
-      <div className="notice">
-        <Info size={20} />
-        <p>
-          Brown Planthopper is included for education. The current model
-          supports Healthy Rice, Rice Leaffolder Damage, Stem Borer Damage, and
-          Unknown (Other Damage).
-        </p>
       </div>
     </div>
   );
@@ -269,8 +220,8 @@ export function About() {
           <ul className="check-list">
             {[
               "Healthy Rice",
-              "Rice Leaffolder Damage",
               "Stem Borer Damage",
+              "Rice Leaffolder Damage",
               "Unknown (Other Damage)",
             ].map((name) => (
               <li key={name}>
@@ -279,11 +230,6 @@ export function About() {
               </li>
             ))}
           </ul>
-          <p className="small">
-            Brown Planthopper is part of the educational guide and planned
-            project scope, but is not a prediction category in the current
-            model.
-          </p>
         </section>
         <section className="panel">
           <ShieldCheck size={25} />

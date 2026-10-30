@@ -14,28 +14,23 @@ test("home, education navigation, assets, and mobile layout", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Identify Rice Pests",
   );
-  await expect(page.locator(".hero-image")).toHaveJSProperty(
-    "naturalWidth",
-    4608,
-  );
+  await expect(page.locator(".hero-image")).toHaveCount(4);
+  await expect(page.locator(".features .feature-card")).toHaveCount(4);
+  await expect.poll(() => page.locator(".hero-image").evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
   await page.screenshot({
     path: "../.artifacts/home-desktop.png",
     fullPage: true,
   });
-  await page.getByRole("link", { name: "Explore the Pest Guide" }).click();
+  await page.getByRole("navigation").getByRole("link", { name: "Pest Guide" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Common Rice Pests and Their Damage",
   );
+  await page.screenshot({ path: "../.artifacts/guide-desktop.png", fullPage: true });
   await page.getByRole("link", { name: "View Details" }).first().click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Brown Planthopper",
+    "Stem Borer",
   );
-  await expect(
-    page.getByText(
-      "current PESTPRINT model does not predict Brown Planthopper",
-      { exact: false },
-    ),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Typical damage characteristics" })).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   for (const url of [
     "/",
@@ -214,6 +209,10 @@ for (const predicted of [
     await expect(
       page.getByRole("heading", { name: "Your Analysis Results" }),
     ).toBeVisible();
+    const photo = await page.locator(".result-image").boundingBox();
+    const probabilities = await page.locator(".probability-section").boundingBox();
+    expect(probabilities!.y).toBeGreaterThan(photo!.y + photo!.height);
+    await page.screenshot({ path: `../.artifacts/result-${predicted}-fixture.png`, fullPage: true });
     if (predicted === "unknown") {
       await expect(
         page.getByRole("heading", {
@@ -274,7 +273,7 @@ test("camera permission failure provides a usable fallback", async ({
     });
   });
   await page.goto("/analyze");
-  await page.getByRole("button", { name: "Take a Photo" }).click();
+  await page.getByRole("button", { name: "Capture Image" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("alert")).toContainText("permission was denied");
   await expect(
@@ -285,6 +284,30 @@ test("camera permission failure provides a usable fallback", async ({
   await expect(
     page.getByRole("button", { name: "Choose Image", exact: true }),
   ).toBeEnabled();
+});
+
+test("hero cycles every five seconds without moving copy, can pause, and respects reduced motion", async ({ page }) => {
+  await page.clock.install();
+  await page.goto("/");
+  await expect(page.locator(".hero-image").first()).toHaveClass(/active/);
+  const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
+  for (const slide of [1, 2, 3, 0]) {
+    await page.clock.runFor(5000);
+    await expect(page.locator(".hero-image").nth(slide)).toHaveClass(/active/);
+    expect(await page.getByRole("heading", { level: 1 }).boundingBox()).toEqual(heading);
+  }
+  await page.getByRole("button", { name: "Pause background animation" }).click();
+  await page.clock.runFor(10000);
+  await expect(page.locator(".hero-image").first()).toHaveClass(/active/);
+  await page.getByRole("button", { name: "Play background animation" }).click();
+  await page.clock.runFor(5000);
+  await expect(page.locator(".hero-image").nth(1)).toHaveClass(/active/);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator(".hero-image").first()).toHaveClass(/active/);
+  await page.clock.runFor(10000);
+  await expect(page.locator(".hero-image").first()).toHaveClass(/active/);
+  await expect(page.locator(".hero-image").first()).toHaveCSS("animation-name", "none");
+  await expect(page.locator(".crop-preview").first()).toHaveCSS("animation-name", "none");
 });
 
 test("drag and drop selects a real image and replacement updates the preview", async ({
@@ -345,7 +368,7 @@ test("camera capture produces a photo and stops the video stream", async ({
     });
   });
   await page.goto("/analyze");
-  await page.getByRole("button", { name: "Take a Photo" }).click();
+  await page.getByRole("button", { name: "Capture Image" }).click();
   await expect(
     page.getByRole("button", { name: "Capture Photo" }),
   ).toBeEnabled();

@@ -1,12 +1,10 @@
 export type ClassId =
   | "healthy_rice"
-  | "brown_planthopper"
   | "rice_leaffolder"
   | "rice_stem_borer"
   | "unknown";
 export const classNames: Record<ClassId, string> = {
   healthy_rice: "Healthy Rice",
-  brown_planthopper: "Brown Planthopper Damage",
   rice_leaffolder: "Rice Leaffolder Damage",
   rice_stem_borer: "Stem Borer Damage",
   unknown: "Unknown (Other Damage)",
@@ -36,28 +34,6 @@ export const unknownGuidance = [
   "Consider consulting an agricultural expert for further assessment.",
 ];
 export const guides: GuideEntry[] = [
-  {
-    slug: "brown-planthopper",
-    name: "Brown Planthopper",
-    scientific: "Nilaparvata lugens",
-    image: "brown-planthopper.png",
-    alt: "Brown planthopper resting on a green rice leaf",
-    category: "Sap-feeding pest",
-    summary:
-      "Sap feeding can cause yellowing and wilting. Heavy infestations can lead to hopperburn.",
-    symptoms: [
-      "Yellowing and wilting plants",
-      "Dry, brown patches known as hopperburn",
-      "Hoppers feeding near the base of tillers",
-    ],
-    detail:
-      "Brown planthoppers feed on rice sap. Severe feeding can cause plants to dry out in patches. Damage can resemble other stresses, so the appearance of the crop alone does not confirm the cause.",
-    observation:
-      "Look closely at the base of the plants and compare affected and unaffected areas. This pest is included for education; the current PESTPRINT model does not predict Brown Planthopper.",
-    source:
-      "https://keyserver.lucidcentral.org/key-server/data/0e090d01-0209-460e-810c-0d060708030c/media/Html/Planthopper.htm",
-    sourceName: "IRRI factsheet · Planthopper",
-  },
   {
     slug: "stem-borer",
     name: "Stem Borer",
@@ -141,7 +117,6 @@ export const guides: GuideEntry[] = [
 ];
 export const guideForClass: Record<ClassId, string> = {
   healthy_rice: "healthy-rice",
-  brown_planthopper: "brown-planthopper",
   rice_leaffolder: "rice-leaffolder",
   rice_stem_borer: "stem-borer",
   unknown: "unknown-damage",
@@ -157,11 +132,6 @@ export const classificationCards: {
     id: "healthy_rice",
     image: "healthy-rice.jpg",
     alt: "Healthy green rice leaves",
-  },
-  {
-    id: "brown_planthopper",
-    image: "brown-planthopper-damage.jpg",
-    alt: "Rice plants with yellowing and drying associated with hopperburn",
   },
   {
     id: "rice_stem_borer",

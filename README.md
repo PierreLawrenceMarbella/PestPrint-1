@@ -2,6 +2,8 @@
 
 A rice crop image analysis system. Upload a crop photo to see the model’s prediction and confidence score.
 
+The AI predicts Healthy Rice, Stem Borer Damage, Rice Leaffolder Damage, or Unknown (Other Damage).
+
 ## Requirements
 
 - Windows PowerShell
@@ -37,8 +39,11 @@ Run these steps after downloading or cloning the project to a new computer. Open
 # Create a Python environment for this project
 python -m venv .venv
 
+# Activate the environment in PowerShell
+.\.venv\Scripts\Activate.ps1
+
 # Install the Python packages
-.venv\Scripts\python.exe -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 # Install the website packages and prepare the website
 cd frontend
@@ -51,30 +56,31 @@ Do not repeat these steps every time you open the website. If you have already s
 
 ## Train the Model (If Needed)
 
-Training requires a dataset with `training`, `validation`, and `testing` folders. Each folder must contain `healthy`, `leaffolder`, `stemborer`, and `unknown` subfolders. After setup, run this from the project folder:
+Training requires a dataset with `training`, `validation`, and `testing` folders. Each folder must contain `healthy`, `leaffolder`, `stemborer`, and `unknown` subfolders. Activate `.venv` in PowerShell from the project folder, then run:
 
 ```powershell
-.venv\Scripts\python.exe train.py
+python train.py
 ```
 
 This saves the trained model to `model/efficientnet_b0_rice_pest.pth`. The first run may need internet to download pretrained weights. Skip training if your group already gave you the `.pth` file.
 
 ## Evaluate the Model
 
-After training, evaluate the saved model with the testing dataset:
+After training, with `.venv` activated, evaluate the saved model with the testing dataset:
 
 ```powershell
-.venv\Scripts\python.exe test.py
+python test.py
 ```
 
 This displays the model's test results. It requires the trained `.pth` file and `dataset/testing/`.
 
 ## Start the System
 
-From the project folder, run:
+Whenever you open a new PowerShell window, activate the environment from the project folder, then start the app:
 
 ```powershell
-.venv\Scripts\python.exe app.py
+.\.venv\Scripts\Activate.ps1
+python app.py
 ```
 
 Open **http://127.0.0.1:5000** in your browser. Press **Ctrl+C** in PowerShell to stop the system.

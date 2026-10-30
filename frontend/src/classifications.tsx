@@ -40,7 +40,7 @@ export function SupportedClasses({
     >
       <h2 id="supported-classes-title">Supported Classes</h2>
       <p>
-        Explore five crop categories. Labels below show which are supported by
+        Explore four crop categories. Labels below show which are supported by
         the connected model.
       </p>
       <div className="classification-grid">

@@ -1,4 +1,5 @@
 import torch
+from pathlib import Path
 from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
@@ -243,6 +244,8 @@ print(
 # --------------------------------------------------
 # 21. Save trained model
 # --------------------------------------------------
+
+Path("model").mkdir(parents=True, exist_ok=True)
 
 torch.save(
     model.state_dict(),

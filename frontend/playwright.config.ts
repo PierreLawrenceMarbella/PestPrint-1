@@ -9,6 +9,7 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:5000",
     headless: true,
     channel: "msedge",
+    viewport: { width: 1280, height: 900 },
     screenshot: "only-on-failure",
   },
 });
