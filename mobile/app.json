@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "PESTPRINT",
+    "slug": "pestprint-mobile",
+    "version": "1.0.2",
+    "orientation": "portrait",
+    "scheme": "pestprint",
+    "platforms": [
+      "android"
+    ],
+    "icon": "./assets/brand/pestprint-icon.png",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.pestprint.mobile",
+      "versionCode": 3,
+      "adaptiveIcon": {
+        "backgroundColor": "#07852F",
+        "foregroundImage": "./assets/brand/pestprint-foreground.png",
+        "monochromeImage": "./assets/brand/pestprint-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "./plugins/withPreviewNetwork.cjs",
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow PESTPRINT to take a photo of your rice crop.",
+          "photosPermission": "Allow PESTPRINT to select a rice crop image.",
+          "microphonePermission": false
+        }
+      ],
+      "onnxruntime-react-native",
+      "./plugins/withOfflineModel.cjs",
+      "./plugins/withPinnedOnnxRuntime.cjs",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/brand/pestprint-icon.png",
+          "imageWidth": 96,
+          "resizeMode": "contain"
+        }
+      ]
+    ]
+  }
+}

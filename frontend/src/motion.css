@@ -1,0 +1,123 @@
+/* Shared motion tokens. Existing ambient effects retain their original pacing. */
+:root {
+  --motion-duration-fast: 180ms;
+  --motion-duration-standard: 250ms;
+  --motion-duration-reveal: 400ms;
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-ambient: ease-in-out;
+  --motion-ease-linear: linear;
+  --motion-distance: 12px;
+  --motion-scale-start: 0.98;
+  --motion-hover-lift: -2px;
+  --motion-stagger-step: 60ms;
+  --motion-stagger-limit: 300ms;
+
+  --motion-duration-crossfade: 1400ms;
+  --motion-duration-hero-zoom: 6500ms;
+  --motion-duration-scan: 4000ms;
+  --motion-duration-float: 7000ms;
+  --motion-float-offset: -2000ms;
+  --motion-duration-spin: 1000ms;
+
+  --motion-transition-interactive:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+    translate var(--motion-duration-fast) var(--motion-ease-standard);
+  --motion-transition-transform:
+    transform var(--motion-duration-standard) var(--motion-ease-standard);
+  --motion-transition-fade:
+    opacity var(--motion-duration-standard) var(--motion-ease-standard);
+}
+
+/* Opt in on existing elements; no wrapper, layout rules or hidden base state. */
+.motion-fade-in,
+.motion-fade-up,
+.motion-scale {
+  animation-duration: var(--motion-duration, var(--motion-duration-reveal));
+  animation-timing-function: var(--motion-ease-enter);
+  animation-delay: var(--motion-delay, 0ms);
+  animation-iteration-count: 1;
+  /* Hide during a stagger delay, then release transforms after the entrance. */
+  animation-fill-mode: backwards;
+}
+
+.motion-fade-in { animation-name: pp-fade-in; }
+.motion-fade-up { animation-name: pp-fade-up; }
+.motion-scale { animation-name: pp-scale-in; }
+
+/* Route entrances start immediately; child effects keep their own timing. */
+.motion-page.motion-fade-up {
+  animation-duration: var(--motion-duration-standard);
+  animation-delay: 0ms;
+}
+.motion-section { --motion-distance: 6px; }
+.motion-reveal-pending { opacity: 0; transform: translateY(var(--motion-distance)); }
+.motion-reveal-pending:focus-within { opacity: 1; transform: none; }
+
+.motion-stagger > :is(.motion-fade-in, .motion-fade-up, .motion-scale) {
+  animation-delay: calc(var(--motion-delay, 0ms) + clamp(
+    0ms,
+    var(--motion-index, 0) * var(--motion-stagger-step),
+    var(--motion-stagger-limit)
+  ));
+}
+
+/* Focus reveals immediately; the shared focus hook latches this across blur. */
+:is(.motion-fade-in, .motion-fade-up, .motion-scale):is(:focus-within, .motion-entered) {
+  animation: none;
+}
+
+.motion-transition,
+.motion-hover { transition: var(--motion-transition-interactive); }
+.motion-transition-transform { transition: var(--motion-transition-transform); }
+.motion-transition-fade { transition: var(--motion-transition-fade); }
+
+/* Individual translate composes with the entrance keyframes' transform. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .motion-hover:where(:not(:disabled):not([aria-disabled="true"])):hover {
+    translate: 0 var(--motion-hover-lift);
+  }
+}
+
+@keyframes pp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pp-fade-up {
+  from { opacity: 0; transform: translateY(var(--motion-distance)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pp-scale-in {
+  from { opacity: 0; transform: scale(var(--motion-scale-start)); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* One motion policy for utilities and existing effects, including live changes. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .motion-hover { translate: none !important; }
+  .motion-reveal-pending { opacity: 1 !important; transform: none !important; }
+  .hero-image, .classification-card:hover img { transform: none !important; }
+  .hero-motion-control { display: none; }
+}
+
+/* Keep the slideshow and scan readable on mobile with fewer continuous layers. */
+@media (max-width: 760px), (pointer: coarse) {
+  .hero .hero-slide:is(.active, .previous) .hero-image,
+  .hero .crop-preview,
+  .hero .scan-frame::before { animation: none; }
+  .hero .scan-frame i, .analysis-scan-frame .analysis-corner { filter: none; }
+}
+
+/* Printing must include sections that have not scrolled into view yet. */
+@media print {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .motion-reveal-pending { opacity: 1 !important; transform: none !important; }
+}

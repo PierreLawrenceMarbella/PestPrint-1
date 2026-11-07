@@ -84,3 +84,9 @@ python app.py
 ```
 
 Open **http://127.0.0.1:5000** in your browser. Press **Ctrl+C** in PowerShell to stop the system.
+
+## PESTPRINT Android Mobile App
+
+PESTPRINT also has a native Android app. It runs the trained EfficientNet-B0 model completely offline with ONNX Runtime, so image analysis needs no internet or cloud backend. The app supports camera capture, gallery upload, classification results, and a Pest Guide.
+
+See [mobile/README.md](mobile/README.md) for Android instructions.

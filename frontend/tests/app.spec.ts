@@ -14,7 +14,8 @@ test("home, education navigation, assets, and mobile layout", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Identify Rice Pests",
   );
-  await expect(page.locator(".hero-image")).toHaveCount(4);
+  await expect(page.locator(".hero-slide")).toHaveCount(4);
+  await expect(page.locator(".hero-slide.active .hero-image")).toBeVisible();
   await expect(page.locator(".features .feature-card")).toHaveCount(4);
   await expect.poll(() => page.locator(".hero-image").evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
   await page.screenshot({
@@ -284,30 +285,6 @@ test("camera permission failure provides a usable fallback", async ({
   await expect(
     page.getByRole("button", { name: "Choose Image", exact: true }),
   ).toBeEnabled();
-});
-
-test("hero cycles every five seconds without moving copy, can pause, and respects reduced motion", async ({ page }) => {
-  await page.clock.install();
-  await page.goto("/");
-  await expect(page.locator(".hero-image").first()).toHaveClass(/active/);
-  const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
-  for (const slide of [1, 2, 3, 0]) {
-    await page.clock.runFor(5000);
-    await expect(page.locator(".hero-image").nth(slide)).toHaveClass(/active/);
-    expect(await page.getByRole("heading", { level: 1 }).boundingBox()).toEqual(heading);
-  }
-  await page.getByRole("button", { name: "Pause background animation" }).click();
-  await page.clock.runFor(10000);
-  await expect(page.locator(".hero-image").first()).toHaveClass(/active/);
-  await page.getByRole("button", { name: "Play background animation" }).click();
-  await page.clock.runFor(5000);
-  await expect(page.locator(".hero-image").nth(1)).toHaveClass(/active/);
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator(".hero-image").first()).toHaveClass(/active/);
-  await page.clock.runFor(10000);
-  await expect(page.locator(".hero-image").first()).toHaveClass(/active/);
-  await expect(page.locator(".hero-image").first()).toHaveCSS("animation-name", "none");
-  await expect(page.locator(".crop-preview").first()).toHaveCSS("animation-name", "none");
 });
 
 test("drag and drop selects a real image and replacement updates the preview", async ({

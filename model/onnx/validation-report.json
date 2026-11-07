@@ -1,0 +1,175 @@
+{
+  "status": "SUCCESS",
+  "created_utc": "2026-11-07T04:31:37.722467+00:00",
+  "environment": {
+    "python": "3.11.9",
+    "platform": "Windows-10-10.0.26300-SP0",
+    "packages": {
+      "torch": "2.14.1+cpu",
+      "torchvision": "0.29.1+cpu",
+      "onnx": "1.23.2",
+      "onnxscript": "0.7.2",
+      "onnxruntime": "1.24.3",
+      "numpy": "2.4.6",
+      "Pillow": "13.0.0"
+    }
+  },
+  "execution_provider": [
+    "CPUExecutionProvider"
+  ],
+  "checkpoint_sha256": "41c048b34844319902c5a3c36fce86254a7eccb1cf463eec7662a331c511734f",
+  "checkpoint_unchanged": true,
+  "onnx_sha256": "213a20863a6e2e1b91d33452a31a0d5764e0a2670b5703cc6a464090f15d9c61",
+  "onnx_unchanged": true,
+  "onnx_bytes": 16643470,
+  "opset": 18,
+  "ir_version": 10,
+  "input": {
+    "name": "image",
+    "dtype": "float32",
+    "shape": [
+      1,
+      3,
+      224,
+      224
+    ],
+    "layout": "NCHW",
+    "channel_order": "RGB"
+  },
+  "output": {
+    "name": "logits",
+    "dtype": "float32",
+    "shape": [
+      1,
+      4
+    ],
+    "semantics": "raw logits",
+    "postprocessing": "stable float32 softmax along axis 1, then argmax; apply softmax once",
+    "included_in_graph": false,
+    "unknown_method": "trained_class"
+  },
+  "classes": [
+    {
+      "index": 0,
+      "id": "healthy_rice",
+      "display_name": "Healthy Rice",
+      "dataset_folder": "healthy"
+    },
+    {
+      "index": 1,
+      "id": "rice_leaffolder",
+      "display_name": "Rice Leaffolder",
+      "dataset_folder": "leaffolder"
+    },
+    {
+      "index": 2,
+      "id": "rice_stem_borer",
+      "display_name": "Stem Borer",
+      "dataset_folder": "stemborer"
+    },
+    {
+      "index": 3,
+      "id": "unknown",
+      "display_name": "Unknown (Other Damage)",
+      "dataset_folder": "unknown"
+    }
+  ],
+  "dataset": {
+    "splits": [
+      "validation",
+      "testing"
+    ],
+    "fingerprint_sha256": "79753d546db5ba6bd9db95218b2763b9811261e8933520c2530db533df3c824f",
+    "per_split": {
+      "validation": {
+        "healthy_rice": 20,
+        "rice_leaffolder": 20,
+        "rice_stem_borer": 20,
+        "unknown": 20
+      },
+      "testing": {
+        "healthy_rice": 20,
+        "rice_leaffolder": 20,
+        "rice_stem_borer": 20,
+        "unknown": 20
+      }
+    },
+    "unique_image_checksums": 159,
+    "duplicate_content_groups": [
+      [
+        "validation/unknown/I_6.jpg",
+        "testing/unknown/I_6.jpg"
+      ]
+    ],
+    "scope": "All supported images in the requested held-out directories; split provenance not independently established."
+  },
+  "images": 160,
+  "per_class": {
+    "healthy_rice": {
+      "images": 40,
+      "agreements": 40
+    },
+    "rice_leaffolder": {
+      "images": 40,
+      "agreements": 40
+    },
+    "rice_stem_borer": {
+      "images": 40,
+      "agreements": 40
+    },
+    "unknown": {
+      "images": 40,
+      "agreements": 40
+    }
+  },
+  "predicted_class_counts": {
+    "healthy_rice": {
+      "pytorch": 40,
+      "onnx": 40
+    },
+    "rice_leaffolder": {
+      "pytorch": 41,
+      "onnx": 41
+    },
+    "rice_stem_borer": {
+      "pytorch": 40,
+      "onnx": 40
+    },
+    "unknown": {
+      "pytorch": 39,
+      "onnx": 39
+    }
+  },
+  "agreement_count": 160,
+  "agreement_fraction": 1.0,
+  "changed_predictions": [],
+  "raw_outputs": {
+    "max_absolute_difference": 8.702278137207031e-05,
+    "mean_absolute_difference": 1.0156165808439255e-05,
+    "atol": 0.0001,
+    "rtol": 0.0001,
+    "absolute_limit": 0.0001,
+    "failed_images": []
+  },
+  "softmax_probabilities": {
+    "max_absolute_difference": 9.566545486450195e-06,
+    "mean_absolute_difference": 5.675405389649058e-07,
+    "atol": 1e-06,
+    "rtol": 0.0001,
+    "absolute_limit": 1e-05,
+    "failed_images": [],
+    "definition": "PyTorch torch.softmax(dim=1) versus float32 max-subtracted NumPy softmax of ONNX logits"
+  },
+  "tolerance_rule": "Elementwise abs(ONNX - PyTorch) <= atol + rtol * abs(PyTorch), AND global absolute limits; zero class changes required independently.",
+  "tolerance_justification": "FP32 convolution/reduction accumulation differences, also seen with optimizations disabled. A 1e-4 absolute logit budget avoids unstable relative error near zero; a separate 1e-5 absolute probability cap limits score changes to 0.001 percentage point. Initial stricter failures and investigation are disclosed in VALIDATION_NOTES.md. No rounding, clamping, or Unknown threshold.",
+  "maximum_probability_sum_error": 1.1920928955078125e-07,
+  "minimum_pytorch_top_two_probability_margin": 0.0803900957107544,
+  "errors": [],
+  "elapsed_seconds": 14.869106600000123,
+  "per_image_results": "validation-samples.jsonl",
+  "per_image_results_sha256": "39941e23bab9cd9b3d60ef761a0d4d281f23664e459b2a059494672558233a7f",
+  "limitations": [
+    "CPU conversion parity only; Android preprocessing, native build compatibility, and device inference are not validated in Phase 11B.",
+    "Agreement with the original model does not establish model accuracy, confidence calibration, or correctness of ground-truth labels."
+  ]
+}

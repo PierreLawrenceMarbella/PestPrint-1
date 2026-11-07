@@ -1,0 +1,32 @@
+// Local Android build tuning for the 8 GB validation machine (debug or release).
+// Ninja compilation pools limit C++ compiler concurrency without changing model/runtime behavior.
+allprojects { p ->
+    ['com.android.application', 'com.android.library'].each { pluginId ->
+        p.plugins.withId(pluginId) {
+            p.android.defaultConfig.externalNativeBuild.cmake.arguments(
+                '-DCMAKE_JOB_POOLS=pestprint_compile=1',
+                '-DCMAKE_JOB_POOL_COMPILE=pestprint_compile'
+            )
+            if (System.getProperty('os.name').startsWith('Windows')) {
+                // Ninja 1.10 cannot stat long generated objects or prefab paths
+                // beneath this checkout, especially RelWithDebInfo library builds.
+                // Only generated C++ outputs move; sources and model stay in place.
+                def workspaceId = Integer.toHexString(rootProject.projectDir.absolutePath.hashCode())
+                def shortRoot = new File(System.getenv('LOCALAPPDATA'), "ppcxx/${workspaceId}/${p.name}")
+                if (pluginId == 'com.android.application') {
+                    // Codegen target names leave only a few characters for the
+                    // source-path hash. A shorter app-only cache lets CMake hash
+                    // them below MAX_PATH even when Windows long paths are off.
+                    shortRoot = new File(System.getenv('USERPROFILE'), ".ppc/${workspaceId}/a")
+                }
+                p.android.externalNativeBuild.cmake.buildStagingDirectory = shortRoot
+                p.android.defaultConfig.externalNativeBuild.cmake.arguments('-DCMAKE_OBJECT_PATH_MAX=250')
+                if (pluginId == 'com.android.application' && System.getenv('PESTPRINT_NINJA')) {
+                    def ninja = new File(System.getenv('PESTPRINT_NINJA'))
+                    if (!ninja.isFile()) throw new GradleException('The prepared Ninja executable is missing.')
+                    p.android.defaultConfig.externalNativeBuild.cmake.arguments("-DCMAKE_MAKE_PROGRAM=${ninja.absolutePath.replace('\\', '/')}")
+                }
+            }
+        }
+    }
+}

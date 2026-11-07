@@ -4,9 +4,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Navbar, RouteFocus } from "./components";
 import { Home, PestGuide, PestDetail, About, NotFound } from "./pages";
 import { Analyze } from "./upload";
+import { useMotionFocus } from "./motion";
 import "./styles.css";
 
 function App() {
+  useMotionFocus();
   return (
     <BrowserRouter>
       <a className="skip-link" href="#main-content">

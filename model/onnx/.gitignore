@@ -1,0 +1,6 @@
+# Generated binary artifacts stay local; keep metadata and summary reports in Git.
+*.onnx
+*.onnx.data
+*.data
+validation-samples.jsonl
+exporter/

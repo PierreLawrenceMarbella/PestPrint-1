@@ -1,0 +1,12 @@
+# Allowlist the backend build context. Never send datasets, model files, or .env.
+**
+!app.py
+!inference.py
+!deploy/
+!deploy/backend/
+!deploy/backend/Dockerfile
+!deploy/backend/requirements.txt
+!deploy/backend/model-manifest.json
+!deploy/backend/prepare_model.py
+!deploy/backend/gunicorn.conf.py
+!deploy/backend/wsgi.py

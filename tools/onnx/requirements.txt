@@ -1,0 +1,7 @@
+# Isolated conversion/validation environment only; do not install into website .venv.
+onnx==1.23.2
+onnxscript==0.7.2
+# Match the inspected onnxruntime-react-native 1.24.3 runtime for CPU validation.
+onnxruntime==1.24.3
+numpy==2.4.6
+Pillow==13.0.0

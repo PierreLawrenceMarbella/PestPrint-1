@@ -1,0 +1,23 @@
+// Local standalone builds use a private, persistent key instead of Expo's debug key.
+// EAS credentials remain independent; this init script is used only by build:apk.
+allprojects { p ->
+    p.plugins.withId('com.android.application') {
+        def propertiesPath = System.getenv('PESTPRINT_SIGNING_PROPERTIES')
+        if (!propertiesPath) throw new GradleException('Missing local standalone signing configuration.')
+        def signingProperties = new Properties()
+        new File(propertiesPath).withInputStream { signingProperties.load(it) }
+        ['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].each { name ->
+            if (!signingProperties.getProperty(name)) throw new GradleException("Missing signing property: ${name}")
+        }
+        p.androidComponents.finalizeDsl { androidDsl ->
+            def releaseKey = androidDsl.signingConfigs.create('pestprintStandalone') {
+                storeFile new File(signingProperties.getProperty('storeFile'))
+                storePassword signingProperties.getProperty('storePassword')
+                keyAlias signingProperties.getProperty('keyAlias')
+                keyPassword signingProperties.getProperty('keyPassword')
+                storeType 'PKCS12'
+            }
+            androidDsl.buildTypes.release.signingConfig = releaseKey
+        }
+    }
+}

@@ -1,0 +1,63 @@
+{
+  "name": "pestprint-mobile",
+  "version": "1.0.2",
+  "main": "expo-router/entry",
+  "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
+    "expo": "~57.0.32",
+    "expo-constants": "~57.0.23",
+    "expo-dev-client": "~57.0.21",
+    "expo-file-system": "~57.0.7",
+    "expo-font": "~57.0.4",
+    "expo-image-picker": "~57.0.21",
+    "expo-linking": "~57.0.13",
+    "expo-navigation-bar": "~57.0.3",
+    "expo-router": "~57.0.30",
+    "expo-splash-screen": "~57.0.11",
+    "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.4",
+    "onnxruntime-react-native": "1.24.3",
+    "react": "19.2.3",
+    "react-dom": "^19.2.3",
+    "react-native": "0.86.3",
+    "react-native-reanimated": "^4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-worklets": "^0.10.1"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "postinstall": "node scripts/patch-onnx-runtime.cjs",
+    "prepare:model": "node scripts/prepare-offline-model.cjs",
+    "verify:model": "node scripts/prepare-offline-model.cjs --verify-only",
+    "eas-build-pre-install": "node scripts/prepare-offline-model.cjs --verify-only",
+    "prestart": "npm run prepare:model",
+    "preexport:android": "npm run prepare:model",
+    "preandroid:native": "npm run prepare:model",
+    "prepare:brand": "node scripts/generate-brand-assets.cjs",
+    "build:apk": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/build-preview.ps1",
+    "build:dev": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/build-development.ps1",
+    "test:api": "node --test scripts/test-api.cjs",
+    "test:offline": "node --test scripts/test-offline.cjs",
+    "test:formatting": "node --test scripts/test-formatting.cjs",
+    "test:launch": "node --test scripts/test-launch.cjs",
+    "test:processing": "node --test scripts/test-processing.cjs",
+    "test:results": "node --test scripts/test-results.cjs",
+    "test:result-screen": "node --test scripts/test-result-screen.cjs",
+    "start": "expo start",
+    "android": "expo start --android",
+    "android:native": "expo run:android",
+    "typecheck": "tsc --noEmit",
+    "export:android": "expo export --platform android"
+  },
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": "./modules"
+    }
+  },
+  "private": true
+}

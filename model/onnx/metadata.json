@@ -1,0 +1,110 @@
+{
+  "export_status": "SUCCESS",
+  "numerical_validation": "Run validate.py; export smoke test alone is insufficient.",
+  "created_utc": "2026-11-07T04:26:44.192111+00:00",
+  "environment": {
+    "python": "3.11.9",
+    "platform": "Windows-10-10.0.26300-SP0",
+    "packages": {
+      "torch": "2.14.1+cpu",
+      "torchvision": "0.29.1+cpu",
+      "onnx": "1.23.2",
+      "onnxscript": "0.7.2",
+      "onnxruntime": "1.24.3",
+      "numpy": "2.4.6",
+      "Pillow": "13.0.0"
+    }
+  },
+  "architecture": "EfficientNet-B0",
+  "precision": "FP32",
+  "checkpoint": {
+    "filename": "efficientnet_b0_rice_pest.pth",
+    "bytes": 16350891,
+    "sha256": "41c048b34844319902c5a3c36fce86254a7eccb1cf463eec7662a331c511734f"
+  },
+  "onnx": {
+    "filename": "efficientnet_b0_rice_pest.onnx",
+    "bytes": 16643470,
+    "sha256": "213a20863a6e2e1b91d33452a31a0d5764e0a2670b5703cc6a464090f15d9c61",
+    "opset": 18,
+    "ir_version": 10,
+    "external_data": false,
+    "operators": [
+      "Add",
+      "Conv",
+      "Gemm",
+      "Mul",
+      "ReduceMean",
+      "Reshape",
+      "Sigmoid"
+    ],
+    "custom_operators": false
+  },
+  "input": {
+    "name": "image",
+    "dtype": "float32",
+    "shape": [
+      1,
+      3,
+      224,
+      224
+    ],
+    "layout": "NCHW",
+    "channel_order": "RGB"
+  },
+  "preprocessing": {
+    "exif_orientation_correction": true,
+    "convert": "RGB",
+    "resize_hw": [
+      224,
+      224
+    ],
+    "resize": "Pillow bilinear, antialiased downsampling; stretch, no crop",
+    "scale": "uint8 / 255.0",
+    "mean_std_normalization": null,
+    "included_in_graph": false
+  },
+  "output": {
+    "name": "logits",
+    "dtype": "float32",
+    "shape": [
+      1,
+      4
+    ],
+    "semantics": "raw logits",
+    "postprocessing": "stable float32 softmax along axis 1, then argmax; apply softmax once",
+    "included_in_graph": false,
+    "unknown_method": "trained_class"
+  },
+  "classes": [
+    {
+      "index": 0,
+      "id": "healthy_rice",
+      "display_name": "Healthy Rice",
+      "dataset_folder": "healthy"
+    },
+    {
+      "index": 1,
+      "id": "rice_leaffolder",
+      "display_name": "Rice Leaffolder",
+      "dataset_folder": "leaffolder"
+    },
+    {
+      "index": 2,
+      "id": "rice_stem_borer",
+      "display_name": "Stem Borer",
+      "dataset_folder": "stemborer"
+    },
+    {
+      "index": 3,
+      "id": "unknown",
+      "display_name": "Unknown (Other Damage)",
+      "dataset_folder": "unknown"
+    }
+  ],
+  "android_runtime_target": {
+    "package": "onnxruntime-react-native",
+    "version": "1.24.3",
+    "device_validation": "not performed in Phase 11B"
+  }
+}

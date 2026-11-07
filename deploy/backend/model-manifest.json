@@ -1,0 +1,8 @@
+{
+  "filename": "efficientnet_b0_rice_pest.pth",
+  "bytes": 16350891,
+  "sha256": "41c048b34844319902c5a3c36fce86254a7eccb1cf463eec7662a331c511734f",
+  "architecture": "EfficientNet-B0",
+  "classes_in_output_order": ["healthy_rice", "rice_leaffolder", "rice_stem_borer", "unknown"],
+  "unknown_method": "trained_class"
+}
